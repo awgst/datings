@@ -1,0 +1,38 @@
+version: '3.9'
+services:
+  mysql_db:
+    container_name: mysql_db
+    image: mysql
+    ports:
+        - '3306:3306'
+    environment:
+        MYSQL_ROOT_PASSWORD: 'root'
+        MYSQL_ROOT_HOST: "%"
+        MYSQL_DATABASE: 'datings'
+        MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    networks:
+        - dating
+    healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-proot"]
+        retries: 3
+        timeout: 5s
+
+  datings:
+    build: .
+    container_name: datings
+    image: app
+    environment:
+      DATABASE_URL: '${DATABASE_URL}'
+    ports:
+      - ${HTTP_PORT}:8080
+    depends_on:
+        mysql_db:
+          condition: service_healthy
+    volumes:
+      - ./.env:/.env
+    networks:
+        - dating
+
+networks:
+  dating:
+    driver: bridge

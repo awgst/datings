@@ -20,7 +20,7 @@ import (
 
 // Run creates objects via constructors.
 func Run(cfg *config.Config) {
-	errorLogger := logger.New("error")
+	errorLogger := logger.New()
 
 	// Database
 	db := database.New(database.ConnectionConfig{
@@ -38,6 +38,12 @@ func Run(cfg *config.Config) {
 	uc := usecase.New(app)
 
 	// HTTP Server
+	ginMode := gin.ReleaseMode
+	if cfg.App.GinMode != "" {
+		ginMode = cfg.App.GinMode
+	}
+	gin.SetMode(ginMode)
+
 	handler := gin.New()
 	v1.NewRouter(handler, uc)
 	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))

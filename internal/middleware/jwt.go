@@ -2,11 +2,13 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/awgst/datings/config"
 	"github.com/awgst/datings/internal/controller/http/response"
+	"github.com/awgst/datings/internal/entity/model"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -46,14 +48,38 @@ func JwtAuth(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		userID, ok := claims["id"].(string)
+		userID, ok := claims["user_id"].(float64)
 		if !ok {
+			fmt.Println("3")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response.UnauthorizedResponse)
 			return
 		}
 
+		email, ok := claims["email"].(string)
+		if !ok {
+			fmt.Println("2")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response.UnauthorizedResponse)
+			return
+		}
+
+		var premiumFeature string
+		premium, exists := claims["premium"]
+		if exists {
+			premiumFeature, ok = premium.(string)
+			if !ok || premiumFeature == "none" {
+				premiumFeature = ""
+			}
+		}
+
 		// Set user to context
 		c.Set("userID", userID)
+		c.Set("user", model.User{
+			ID:    int(userID),
+			Email: email,
+			Premium: &model.Premium{
+				Feature: model.PremiumFeature(premiumFeature),
+			},
+		})
 		c.Next()
 	}
 }

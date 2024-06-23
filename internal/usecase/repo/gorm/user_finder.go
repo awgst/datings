@@ -27,7 +27,7 @@ func NewGormUserFinder(db *gorm.DB) repo.UserFinder {
 
 func (u *userFinder) FindByEmail(email string) (model.User, error) {
 	var user model.User
-	err := u.db.Where("email = ?", email).First(&user).Error
+	err := u.db.Where("email = ?", email).Preload("Premium").First(&user).Error
 	if err == gorm.ErrRecordNotFound {
 		return model.User{}, nil
 	}
@@ -70,6 +70,10 @@ func (u *userFinder) FindAllProfile(user model.User, paging *pagination.Paginato
 					swipes s
 				ON
 					s.profile_id = p.id AND DATE(s.created_at) = CURDATE()
+				LEFT JOIN
+					premiums pr
+				ON
+					pr.user_id = p.user_id AND pr.feature = 'verified_label'
 				WHERE
 					p.user_id != ?
 				AND
@@ -91,13 +95,21 @@ func (u *userFinder) FindAllProfile(user model.User, paging *pagination.Paginato
 			`
 				SELECT
 					p.id,
-					p.name
+					p.name,
+					case
+						when pr.feature = 'verified_label' then true
+						else false
+					end as is_verified
 				FROM
 					profiles p
 				LEFT JOIN
 					swipes s
 				ON
 					s.profile_id = p.id AND DATE(s.created_at) = CURDATE()
+				LEFT JOIN
+					premiums pr
+				ON
+					pr.user_id = p.user_id AND pr.feature = 'verified_label'
 				WHERE
 					p.user_id != ?
 				AND

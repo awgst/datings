@@ -32,6 +32,9 @@ type Profile struct {
 	Name      string
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
+
+	// Helper
+	IsVerified bool `gorm:"->"`
 }
 
 func (p Profile) TableName() string {

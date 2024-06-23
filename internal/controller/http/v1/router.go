@@ -20,6 +20,7 @@ func NewRouter(handler *gin.Engine, uc *usecase.Usecase) {
 	handler.Use(gin.Logger())
 	handler.Use(gin.CustomRecovery(func(ctx *gin.Context, err interface{}) {
 		ctx.JSON(http.StatusInternalServerError, response.JSON(false, "Something went wrong", nil))
+		return
 	}))
 
 	handler.GET("/healthz", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, response.JSON(true, "Ok", nil)) })

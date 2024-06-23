@@ -31,8 +31,14 @@ func NewHandler(feedUsecase usecase.FeedUsecase, errorLogger logger.Interface) H
 }
 
 func (h Handler) Swipe(ctx *gin.Context) {
-	userID := ctx.GetFloat64("userID")
-	if userID == 0 {
+	userFromCtx, exists := ctx.Get("user")
+	if !exists {
+		ctx.JSON(http.StatusBadRequest, response.UnauthorizedResponse)
+		return
+	}
+
+	user, ok := userFromCtx.(model.User)
+	if !ok {
 		ctx.JSON(http.StatusBadRequest, response.UnauthorizedResponse)
 		return
 	}
@@ -56,9 +62,7 @@ func (h Handler) Swipe(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.feedUsecase.Swipe(model.User{
-		ID: int(userID),
-	}, req); err != nil {
+	if err := h.feedUsecase.Swipe(user, req); err != nil {
 		customErr, ok := err.(customerror.Error)
 		if ok {
 			ctx.JSON(http.StatusBadRequest, response.JSON(false, "Failed to swipe", customErr))
@@ -74,8 +78,14 @@ func (h Handler) Swipe(ctx *gin.Context) {
 }
 
 func (h Handler) Recommendation(ctx *gin.Context) {
-	userID := ctx.GetFloat64("userID")
-	if userID == 0 {
+	userFromCtx, exists := ctx.Get("user")
+	if !exists {
+		ctx.JSON(http.StatusBadRequest, response.UnauthorizedResponse)
+		return
+	}
+
+	user, ok := userFromCtx.(model.User)
+	if !ok {
 		ctx.JSON(http.StatusBadRequest, response.UnauthorizedResponse)
 		return
 	}
@@ -86,16 +96,14 @@ func (h Handler) Recommendation(ctx *gin.Context) {
 		return
 	}
 
-	if query.Page == 0 {
+	if query.Page == 0 || !user.HasUnlimitedSwipe() {
 		query.Page = 1
 	}
 
 	paging := new(pagination.Paginator)
 	paging.New(10, query.Page, "/v1/feed")
 
-	profiles, err := h.feedUsecase.Recommendation(model.User{
-		ID: int(userID),
-	}, paging)
+	profiles, err := h.feedUsecase.Recommendation(user, paging)
 	if err != nil {
 		customErr, ok := err.(customerror.Error)
 		if ok {

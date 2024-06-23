@@ -61,6 +61,7 @@ func (u authUsecase) SignUp(req authrequest.SignupRequest) (authresponse.SignupR
 	accessToken, err := u.token.JwtToken(u.cfg.JWT.Secret, jwt.MapClaims{
 		"user_id": createdUser.ID,
 		"email":   createdUser.Email,
+		"premium": "none",
 		"exp":     time.Now().Add(time.Minute * time.Duration(u.cfg.JWT.ExpireInMinutes)).Unix(),
 	})
 	if err != nil {
@@ -92,9 +93,14 @@ func (u authUsecase) Login(req authrequest.LoginRequest) (authresponse.LoginResp
 		}
 	}
 
+	premium := "none"
+	if user.Premium != nil {
+		premium = string(user.Premium.Feature)
+	}
 	accessToken, err := u.token.JwtToken(u.cfg.JWT.Secret, jwt.MapClaims{
 		"user_id": user.ID,
 		"email":   user.Email,
+		"premium": premium,
 		"exp":     time.Now().Add(time.Minute * time.Duration(u.cfg.JWT.ExpireInMinutes)).Unix(),
 	})
 	if err != nil {

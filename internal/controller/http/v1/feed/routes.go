@@ -21,5 +21,6 @@ func NewRoutes(param NewRoutesParams) {
 	{
 		routes.Use(middleware.JwtAuth(param.Configuration))
 		routes.POST("/swipe", handler.Swipe)
+		routes.GET("", handler.Recommendation)
 	}
 }

@@ -5,13 +5,16 @@ import (
 	"net/http"
 
 	"github.com/awgst/datings/internal/entity/model"
+	feedquery "github.com/awgst/datings/internal/entity/query/feed"
 	feedrequest "github.com/awgst/datings/internal/entity/request/feed"
+	feedresponse "github.com/awgst/datings/internal/entity/response/feed"
 
 	"github.com/awgst/datings/internal/controller/http/response"
 	"github.com/awgst/datings/internal/controller/http/validator"
 	"github.com/awgst/datings/internal/customerror"
 	"github.com/awgst/datings/internal/usecase"
 	"github.com/awgst/datings/pkg/logger"
+	"github.com/awgst/datings/pkg/pagination"
 	"github.com/gin-gonic/gin"
 )
 
@@ -68,4 +71,50 @@ func (h Handler) Swipe(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response.JSON(true, "Success", nil))
+}
+
+func (h Handler) Recommendation(ctx *gin.Context) {
+	userID := ctx.GetFloat64("userID")
+	if userID == 0 {
+		ctx.JSON(http.StatusBadRequest, response.UnauthorizedResponse)
+		return
+	}
+
+	var query feedquery.ListPaginatedQuery
+	if err := ctx.ShouldBindQuery(&query); err != nil {
+		ctx.JSON(http.StatusBadRequest, response.JSON(false, "Failed to get feeds", err.Error()))
+		return
+	}
+
+	if query.Page == 0 {
+		query.Page = 1
+	}
+
+	paging := new(pagination.Paginator)
+	paging.New(10, query.Page, "/v1/feed")
+
+	profiles, err := h.feedUsecase.Recommendation(model.User{
+		ID: int(userID),
+	}, paging)
+	if err != nil {
+		customErr, ok := err.(customerror.Error)
+		if ok {
+			ctx.JSON(http.StatusBadRequest, response.JSON(false, "Failed to get feeds", customErr))
+			return
+		}
+
+		h.errorLogger.Error(fmt.Errorf("[internal.controller.http.v1.feed] Recommendation: %s", err.Error()))
+		ctx.JSON(http.StatusInternalServerError, response.JSON(false, "Something went wrong", nil))
+		return
+	}
+
+	ctx.JSON(
+		http.StatusOK,
+		response.JSON(
+			true,
+			"Success",
+			new(feedresponse.RecommendationResponse).Makes(profiles),
+			paging.GetLinks(),
+		),
+	)
 }

@@ -3,6 +3,7 @@ package gorm
 import (
 	"github.com/awgst/datings/internal/entity/model"
 	"github.com/awgst/datings/internal/usecase/repo"
+	"github.com/awgst/datings/pkg/pagination"
 	"gorm.io/gorm"
 )
 
@@ -48,4 +49,85 @@ func (u *userFinder) FindByID(id int) (model.User, error) {
 	}
 
 	return user, nil
+}
+
+func (u *userFinder) FindAllProfile(user model.User, paging *pagination.Paginator) ([]model.Profile, error) {
+	// TODO: filter profile by user preferences
+	var (
+		profiles        []model.Profile
+		concurrentCount = 2
+		errChan         = make(chan error, concurrentCount)
+	)
+
+	go func() {
+		var count int64
+		err := u.db.Raw(`
+				SELECT
+					count(p.id)
+				FROM
+					profiles p
+				LEFT JOIN
+					swipes s
+				ON
+					s.profile_id = p.id AND DATE(s.created_at) = CURDATE()
+				WHERE
+					p.user_id != ?
+				AND
+					s.id IS NULL
+			`, user.ID).Scan(&count).
+			Error
+
+		if err != nil {
+			errChan <- err
+			return
+		}
+
+		paging.SetTotal(count)
+		errChan <- nil
+	}()
+
+	go func() {
+		err := u.db.Raw(
+			`
+				SELECT
+					p.id,
+					p.name
+				FROM
+					profiles p
+				LEFT JOIN
+					swipes s
+				ON
+					s.profile_id = p.id AND DATE(s.created_at) = CURDATE()
+				WHERE
+					p.user_id != ?
+				AND
+					s.id IS NULL
+				LIMIT ?
+				OFFSET ?
+			`,
+			user.ID,
+			paging.Limit,
+			paging.Offset,
+		).Scan(&profiles).Error
+		if err != nil {
+			errChan <- err
+			return
+		}
+
+		errChan <- nil
+	}()
+
+	var errors []error
+	for i := 0; i < concurrentCount; i++ {
+		err := <-errChan
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
+
+	if len(errors) > 0 {
+		return []model.Profile{}, errors[0]
+	}
+
+	return profiles, nil
 }

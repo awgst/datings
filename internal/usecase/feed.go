@@ -4,14 +4,17 @@ import (
 	"github.com/awgst/datings/internal/entity/model"
 	feedrequest "github.com/awgst/datings/internal/entity/request/feed"
 	"github.com/awgst/datings/internal/usecase/repo"
+	"github.com/awgst/datings/pkg/pagination"
 )
 
 type FeedUsecase interface {
 	Swipe(user model.User, req feedrequest.SwipeRequest) error
+	Recommendation(user model.User, paging *pagination.Paginator) ([]model.Profile, error)
 }
 
 type feedUsecase struct {
 	swipeWriter repo.SwipeWriter
+	userFinder  repo.UserFinder
 }
 
 func NewFeedUsecase(uc feedUsecase) FeedUsecase {
@@ -24,4 +27,8 @@ func (u feedUsecase) Swipe(user model.User, req feedrequest.SwipeRequest) error 
 		ProfileID: req.ProfileID,
 		Type:      model.SwipeType(req.Type),
 	})
+}
+
+func (u feedUsecase) Recommendation(user model.User, paging *pagination.Paginator) ([]model.Profile, error) {
+	return u.userFinder.FindAllProfile(user, paging)
 }

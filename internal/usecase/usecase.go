@@ -39,6 +39,7 @@ func New(app *app.App) *Usecase {
 		}),
 		Feed: NewFeedUsecase(feedUsecase{
 			swipeWriter: gormSwipeWriter,
+			userFinder:  gormUserFinder,
 		}),
 	}
 }

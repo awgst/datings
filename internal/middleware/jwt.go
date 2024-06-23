@@ -46,7 +46,7 @@ func JwtAuth(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		userID, ok := claims["id"].(string)
+		userID, ok := claims["user_id"].(float64)
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response.UnauthorizedResponse)
 			return

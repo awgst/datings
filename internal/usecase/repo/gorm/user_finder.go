@@ -34,3 +34,16 @@ func (u *userFinder) FindByEmail(email string) (model.User, error) {
 
 	return user, nil
 }
+
+func (u *userFinder) FindByID(id int) (model.User, error) {
+	var user model.User
+	err := u.db.Where("id = ?", id).Preload("Profile").First(&user).Error
+	if err == gorm.ErrRecordNotFound {
+		return model.User{}, nil
+	}
+	if err != nil {
+		return model.User{}, err
+	}
+
+	return user, nil
+}

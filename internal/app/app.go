@@ -20,7 +20,7 @@ import (
 
 // Run creates objects via constructors.
 func Run(cfg *config.Config) {
-	errorLogger := logger.New("error")
+	errorLogger := logger.New()
 
 	// Database
 	db := database.New(database.ConnectionConfig{

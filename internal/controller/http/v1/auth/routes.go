@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewRoutes(r *gin.RouterGroup, errorLogger logger.Interface, userUsecase usecase.AuthUsecase) {
-	handler := NewHandler(userUsecase, errorLogger)
+func NewRoutes(r *gin.RouterGroup, errorLogger logger.Interface, authUsecase usecase.AuthUsecase) {
+	handler := NewHandler(authUsecase, errorLogger)
 	routes := r.Group("/auth")
 	{
 		routes.POST("/signup", handler.SignUp)

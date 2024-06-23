@@ -10,6 +10,7 @@ import (
 type Usecase struct {
 	App  *app.App
 	Auth AuthUsecase
+	User UserUsecase
 }
 
 func New(app *app.App) *Usecase {
@@ -23,6 +24,10 @@ func New(app *app.App) *Usecase {
 			userWriter: gormUserWriter,
 			token:      token.NewToken(),
 			password:   password.NewPassword(),
+		}),
+		User: NewUserUsecase(userUsecase{
+			userFinder: gormUserFinder,
+			userWriter: gormUserWriter,
 		}),
 	}
 }

@@ -12,12 +12,14 @@ type Usecase struct {
 	Auth    AuthUsecase
 	User    UserUsecase
 	Premium PremiumUsecase
+	Feed    FeedUsecase
 }
 
 func New(app *app.App) *Usecase {
 	gormUserFinder := gorm.NewGormUserFinder(app.DB.Gorm)
 	gormUserWriter := gorm.NewGormUserWriter(app.DB.Gorm)
 	gormPremiumWriter := gorm.NewGormPremiumWriter(app.DB.Gorm)
+	gormSwipeWriter := gorm.NewGormSwipeWriter(app.DB.Gorm)
 
 	return &Usecase{
 		App: app,
@@ -34,6 +36,9 @@ func New(app *app.App) *Usecase {
 		}),
 		Premium: NewPremiumUsecase(premiumUsecase{
 			premiumWriter: gormPremiumWriter,
+		}),
+		Feed: NewFeedUsecase(feedUsecase{
+			swipeWriter: gormSwipeWriter,
 		}),
 	}
 }

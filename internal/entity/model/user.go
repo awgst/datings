@@ -11,10 +11,19 @@ type User struct {
 	LastLoginAt  sql.NullTime
 
 	Profile *Profile `gorm:"foreignKey:UserID"`
+	Premium *Premium `gorm:"foreignKey:UserID"`
 }
 
 func (u User) TableName() string {
 	return "users"
+}
+
+func (u User) HasUnlimitedSwipe() bool {
+	if u.Premium == nil {
+		return false
+	}
+
+	return u.Premium.Feature == PremiumFeatureNoSwipeQuota
 }
 
 type Profile struct {

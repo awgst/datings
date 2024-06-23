@@ -8,6 +8,7 @@ import (
 
 	"github.com/awgst/datings/internal/controller/http/response"
 	"github.com/awgst/datings/internal/controller/http/v1/auth"
+	"github.com/awgst/datings/internal/controller/http/v1/premium"
 	"github.com/awgst/datings/internal/controller/http/v1/profile"
 	"github.com/awgst/datings/internal/usecase"
 )
@@ -26,5 +27,11 @@ func NewRouter(handler *gin.Engine, uc *usecase.Usecase) {
 	{
 		auth.NewRoutes(v1, uc.App.Logger, uc.Auth)
 		profile.NewRoutes(v1, uc.App.Logger, uc.App.Config, uc.User)
+		premium.NewRoutes(premium.NewRoutesParams{
+			R:              v1,
+			ErrorLogger:    uc.App.Logger,
+			Configuration:  uc.App.Config,
+			PremiumUsecase: uc.Premium,
+		})
 	}
 }

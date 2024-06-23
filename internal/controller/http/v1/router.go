@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/awgst/datings/internal/controller/http/response"
+	"github.com/awgst/datings/internal/controller/http/v1/auth"
 	"github.com/awgst/datings/internal/usecase"
 )
 
@@ -19,4 +20,9 @@ func NewRouter(handler *gin.Engine, uc *usecase.Usecase) {
 	}))
 
 	handler.GET("/healthz", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, response.JSON(true, "Ok", nil)) })
+
+	v1 := handler.Group("/v1")
+	{
+		auth.NewRoutes(v1, uc.App.Logger, uc.Auth)
+	}
 }

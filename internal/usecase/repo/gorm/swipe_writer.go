@@ -2,6 +2,7 @@ package gorm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/awgst/datings/internal/customerror"
 	"github.com/awgst/datings/internal/entity/model"
@@ -33,15 +34,16 @@ func (s *swipeWriter) Create(user model.User, swipe *model.Swipe) error {
 			var count int64
 			err := tx.Table(swipe.TableName()).
 				Where(
-					"user_id = ? AND DATE(created_at) = CURDATE()",
+					"user_id = ? AND DATE(created_at) = DATE(?)",
 					swipe.UserID,
+					time.Now(),
 				).
 				Count(&count).
 				Error
 			if err != nil {
 				return err
 			}
-			if count > 10 {
+			if count >= 10 {
 				return customerror.Error{
 					Code: customerror.ErrorCodeInvalidRequest,
 					Err:  fmt.Sprintf("user with id %d has already swiped on 10 profiles", swipe.UserID),
@@ -51,11 +53,11 @@ func (s *swipeWriter) Create(user model.User, swipe *model.Swipe) error {
 
 		var count int64
 		err := tx.Table(swipe.TableName()).
-			Debug().
 			Where(
-				"user_id = ? AND profile_id = ? AND DATE(created_at) = CURDATE()",
+				"user_id = ? AND profile_id = ? AND DATE(created_at) = DATE(?)",
 				swipe.UserID,
 				swipe.ProfileID,
+				time.Now(),
 			).
 			Count(&count).
 			Error

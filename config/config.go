@@ -20,6 +20,7 @@ type (
 	App struct {
 		Name    string `env-required:"true" env:"APP_NAME"`
 		Version string `env-required:"true" env:"APP_VERSION"`
+		GinMode string `env:"GIN_MODE"`
 	}
 
 	// HTTP -.
@@ -50,6 +51,28 @@ func NewConfig() (*Config, error) {
 	err := cleanenv.ReadEnv(cfg)
 	if err != nil {
 		return nil, err
+	}
+
+	return cfg, nil
+}
+
+func NewConfigForTest() (*Config, error) {
+	cfg := &Config{
+		App: App{
+			Name:    "dating",
+			Version: "1.0.0",
+			GinMode: "test",
+		},
+		HTTP: HTTP{
+			Port: "8080",
+		},
+		Database: Database{
+			URL: "root:root@tcp(localhost:3306)/datings?charset=utf8mb4&parseTime=True&loc=Local",
+		},
+		JWT: JWT{
+			Secret:          "secret",
+			ExpireInMinutes: 60,
+		},
 	}
 
 	return cfg, nil

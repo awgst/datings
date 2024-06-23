@@ -38,6 +38,12 @@ func Run(cfg *config.Config) {
 	uc := usecase.New(app)
 
 	// HTTP Server
+	ginMode := gin.ReleaseMode
+	if cfg.App.GinMode != "" {
+		ginMode = cfg.App.GinMode
+	}
+	gin.SetMode(ginMode)
+
 	handler := gin.New()
 	v1.NewRouter(handler, uc)
 	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))

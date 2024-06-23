@@ -8,14 +8,17 @@ import (
 )
 
 type Usecase struct {
-	App  *app.App
-	Auth AuthUsecase
-	User UserUsecase
+	App     *app.App
+	Auth    AuthUsecase
+	User    UserUsecase
+	Premium PremiumUsecase
 }
 
 func New(app *app.App) *Usecase {
 	gormUserFinder := gorm.NewGormUserFinder(app.DB.Gorm)
 	gormUserWriter := gorm.NewGormUserWriter(app.DB.Gorm)
+	gormPremiumWriter := gorm.NewGormPremiumWriter(app.DB.Gorm)
+
 	return &Usecase{
 		App: app,
 		Auth: NewAuthUsecase(authUsecase{
@@ -28,6 +31,9 @@ func New(app *app.App) *Usecase {
 		User: NewUserUsecase(userUsecase{
 			userFinder: gormUserFinder,
 			userWriter: gormUserWriter,
+		}),
+		Premium: NewPremiumUsecase(premiumUsecase{
+			premiumWriter: gormPremiumWriter,
 		}),
 	}
 }

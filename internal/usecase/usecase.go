@@ -27,6 +27,7 @@ func New(app *app.App) *Usecase {
 		}),
 		User: NewUserUsecase(userUsecase{
 			userFinder: gormUserFinder,
+			userWriter: gormUserWriter,
 		}),
 	}
 }

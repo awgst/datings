@@ -7,7 +7,7 @@ import (
 )
 
 type userRepo struct {
-	db *gorm.DB
+	*base
 }
 
 type userFinder struct {
@@ -17,7 +17,9 @@ type userFinder struct {
 func NewGormUserFinder(db *gorm.DB) repo.UserFinder {
 	return &userFinder{
 		userRepo: &userRepo{
-			db: db,
+			base: &base{
+				db: db,
+			},
 		},
 	}
 }

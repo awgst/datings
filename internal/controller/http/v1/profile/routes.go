@@ -14,5 +14,6 @@ func NewRoutes(r *gin.RouterGroup, errorLogger logger.Interface, cfg *config.Con
 	{
 		routes.Use(middleware.JwtAuth(cfg))
 		routes.GET("", handler.Profile)
+		routes.PATCH("", handler.UpdateProfile)
 	}
 }

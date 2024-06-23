@@ -5,8 +5,10 @@ import "fmt"
 type ErrorCode string
 
 const (
-	ErrorCodeNotFound      ErrorCode = "not_found"
-	ErrorCodeAlreadyExists ErrorCode = "already_exists"
+	ErrorCodeInvalidCredentials ErrorCode = "invalid_credentials"
+	ErrorCodeNotFound           ErrorCode = "not_found"
+	ErrorCodeAlreadyExists      ErrorCode = "already_exists"
+	ErrorCodeInvalidRequest     ErrorCode = "invalid_request"
 )
 
 var (
@@ -17,8 +19,8 @@ var (
 )
 
 type Error struct {
-	Code ErrorCode
-	Err  interface{}
+	Code ErrorCode   `json:"code"`
+	Err  interface{} `json:"errors"`
 }
 
 func (e Error) Error() string {

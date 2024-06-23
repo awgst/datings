@@ -18,6 +18,7 @@ import (
 
 type AuthUsecase interface {
 	SignUp(req authrequest.SignupRequest) (authresponse.SignupResponse, error)
+	Login(req authrequest.LoginRequest) (authresponse.LoginResponse, error)
 }
 
 type authUsecase struct {
@@ -67,6 +68,40 @@ func (u authUsecase) SignUp(req authrequest.SignupRequest) (authresponse.SignupR
 	}
 
 	return authresponse.SignupResponse{
+		Token: accessToken,
+	}, nil
+}
+
+func (u authUsecase) Login(req authrequest.LoginRequest) (authresponse.LoginResponse, error) {
+	user, err := u.userFinder.FindByEmail(req.Email)
+	if err != nil {
+		return authresponse.LoginResponse{}, err
+	}
+
+	if user.ID == 0 {
+		return authresponse.LoginResponse{}, customerror.Error{
+			Code: customerror.ErrorCodeInvalidCredentials,
+			Err:  nil,
+		}
+	}
+
+	if !u.password.Compare(user.PasswordHash, req.Password) {
+		return authresponse.LoginResponse{}, customerror.Error{
+			Code: customerror.ErrorCodeInvalidCredentials,
+			Err:  nil,
+		}
+	}
+
+	accessToken, err := u.token.JwtToken(u.cfg.JWT.Secret, jwt.MapClaims{
+		"user_id": user.ID,
+		"email":   user.Email,
+		"exp":     time.Now().Add(time.Minute * time.Duration(u.cfg.JWT.ExpireInMinutes)).Unix(),
+	})
+	if err != nil {
+		return authresponse.LoginResponse{}, err
+	}
+
+	return authresponse.LoginResponse{
 		Token: accessToken,
 	}, nil
 }

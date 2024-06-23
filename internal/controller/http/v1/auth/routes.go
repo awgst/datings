@@ -11,5 +11,6 @@ func NewRoutes(r *gin.RouterGroup, errorLogger logger.Interface, userUsecase use
 	routes := r.Group("/auth")
 	{
 		routes.POST("/signup", handler.SignUp)
+		routes.POST("/login", handler.Login)
 	}
 }

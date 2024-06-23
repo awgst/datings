@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	premiumrequest "github.com/awgst/datings/internal/entity/request/premium"
+	"github.com/awgst/datings/internal/usecase"
 
 	"github.com/awgst/datings/internal/controller/http/response"
 	"github.com/awgst/datings/internal/controller/http/validator"
 	"github.com/awgst/datings/internal/customerror"
-	"github.com/awgst/datings/internal/usecase"
 	"github.com/awgst/datings/pkg/logger"
 	"github.com/gin-gonic/gin"
 )

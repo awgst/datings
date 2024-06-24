@@ -36,7 +36,7 @@ Business logic.
 #### `internal/usecase/repo`
 A repository is an abstract storage (database) that business logic works with. Grouped by package used.
 
-### `pkg/rabbitmq`
+### `pkg`
 All helper and utility for reusable code.
 
 ## Makefile
